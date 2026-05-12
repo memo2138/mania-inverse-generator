@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# PyInstaller
+build/
+dist/
+*.spec
+
+# PyCharm
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+
+# Local test outputs
+*.osu.bak
