@@ -736,18 +736,46 @@ class InverseGeneratorApp(QMainWindow):
         diff_name = self.diff_name_field.text().strip() or DEFAULT_DIFF_NAME
 
         try:
-            for start, end, denom in selected:
-                bm.hit_objects = invert_section(
-                    bm, start, end, denom, min_ln_ms=min_ln
+            # Recargamos el beatmap desde disco para partir siempre del
+            # estado original. Esto permite apretar Generate varias veces
+            # con gaps distintos sin que las LNs de la vez anterior interfieran.
+            fresh = Beatmap(bm.path)
+
+            # Contamos cuántas taps había ANTES de invertir (dentro de las secciones)
+            taps_before = 0
+            for start, end, _ in selected:
+                taps_before += sum(
+                    1 for h in fresh.hit_objects
+                    if start <= h.time <= end and not h.is_long_note
                 )
-            out_path = bm.save(new_difficulty=diff_name)
+
+            for start, end, denom in selected:
+                fresh.hit_objects = invert_section(
+                    fresh, start, end, denom, min_ln_ms=min_ln
+                )
+
+            # Contamos cuántas taps quedaron DESPUÉS (no se pudieron convertir)
+            taps_after = 0
+            for start, end, _ in selected:
+                taps_after += sum(
+                    1 for h in fresh.hit_objects
+                    if start <= h.time <= end and not h.is_long_note
+                )
+
+            out_path = fresh.save(new_difficulty=diff_name)
         except Exception as ex:
             self._show_status(f"Generation failed: {ex}", error=True)
             return
 
         self.last_output_path = out_path
         self.open_folder_button.show()
-        self._show_status(f"✓ Saved: {os.path.basename(out_path)}", error=False)
+
+        # Mensaje de éxito, con advertencia si muchas notas quedaron como tap
+        base_msg = f"✓ Saved: {os.path.basename(out_path)}"
+        if taps_after > 0:
+            pct = round(100 * taps_after / max(taps_before, 1))
+            base_msg += f"  ·  {taps_after} notes stayed as taps ({pct}% — try a smaller gap)"
+        self._show_status(base_msg, error=False)
 
     def _show_status(self, msg, error=False):
         color = RED if error else GREEN

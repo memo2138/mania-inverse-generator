@@ -2,7 +2,7 @@
 inverse.py — Convierte un Beatmap normal en su versión inverse.
 """
 
-from beatmap import Beatmap, HitObject, x_from_column,c
+from beatmap import Beatmap, HitObject, x_from_column
 
 
 def gap_ms(bpm, denominator):

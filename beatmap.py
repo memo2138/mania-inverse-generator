@@ -116,7 +116,7 @@ class TimingPoint:
 
 def parse_sections(osu_path):
     """Lee un .osu y lo divide en secciones por su header [Nombre]."""
-    text = Path(osu_path).read_text(encoding="utf-8")
+    text = Path(osu_path).read_text(encoding="utf-8-sig")
     sections = {}
     current = None
 
@@ -324,8 +324,10 @@ class Beatmap:
 
             lines.append("")  # línea en blanco entre secciones
 
-        # Escribimos con CRLF (line endings de Windows, como el original)
-        out_path.write_text("\r\n".join(lines), encoding="utf-8")
+        # Escribimos con CRLF (line endings de Windows, como el original).
+        # newline="" desactiva la conversión automática \n→\r\n de Python
+        # en Windows, porque ya unimos con \r\n nosotros mismos.
+        out_path.write_text("\r\n".join(lines), encoding="utf-8", newline="")
 
         return out_path
 
